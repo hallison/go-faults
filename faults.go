@@ -43,7 +43,7 @@ func (f *Faults) Reset() *Faults {
 // Check add a message and check if the block code should be runned testing if
 // has no failures or allow stack or unlocked.
 func (f *Faults) Check(message string, block BlockFunction) *Faults {
-	if f.IsEmpty() || f.allowStack || !f.locked {
+	if !f.locked && f.IsEmpty() || f.allowStack {
 		f.lastMessage = message
 		if fail := block(); fail != nil {
 			f.failures[message] = fail
