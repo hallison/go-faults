@@ -12,6 +12,9 @@ import (
 // Type function that runs a block code and returns error.
 type BlockFunction func() error
 
+// Type function that runs a block code and returns boolean.
+type TestFunction func(error) bool
+
 // Faults is a basic structure to handle errors.
 type Faults struct {
 	lastMessage string           `json:"-"`
@@ -109,6 +112,18 @@ func (f *Faults) AddIf(condition bool, message string) *Faults {
 // GetLast returns the last error.
 func (f *Faults) GetLast() error {
 	return f.failures[f.lastMessage]
+}
+
+// ReviewLastFail tests the last fail and returns a boolean value.
+func (f *Faults) ReviewLastFail(message string, test TestFunction) *Faults {
+	var fail = f.failures[f.lastMessage]
+
+	if fail != nil && test(fail) {
+		delete(f.failures, f.lastMessage)
+		f.addFailWithMessage(fail, message)
+	}
+
+	return f
 }
 
 // GetAll returns all failures.
