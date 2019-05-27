@@ -20,34 +20,63 @@ type Faults struct {
 	locked      bool             `json:"-"`
 }
 
+func (f *Faults) resetFailures() *Faults {
+	f.failures = make(map[string]error)
+
+	return f
+}
+
+func (f *Faults) addFailWithMessage(fail error, message string) *Faults {
+	if !f.allowStack {
+		f.resetFailures()
+	}
+
+	f.lastMessage = message
+	f.failures[message] = fail
+
+	return f
+}
+
+func (f *Faults) lock() *Faults {
+	f.locked = !f.allowStack
+
+	return f
+}
+
+// Reset set default values to faults handler.
+func (f *Faults) Reset() *Faults {
+	f.lastMessage = ""
+	f.allowStack = false
+	f.locked = false
+
+	return f.resetFailures()
+}
+
+// LastMessage returns the last message from failures.
+func (f *Faults) LastMessage() string {
+	return f.lastMessage
+}
+
 // EnableStack if handle a stack of errors, this function enable this feature.
 func (f *Faults) EnableStack() *Faults {
 	f.allowStack = true
+
 	return f
 }
 
 // DisableStack if do not handle a stack of errors, this function disable this feature.
 func (f *Faults) DisableStack() *Faults {
 	f.allowStack = false
-	return f
-}
 
-// Reset set default values to faults handler.
-func (f *Faults) Reset() *Faults {
-	f.failures = make(map[string]error)
-	f.lastMessage = ""
-	f.allowStack = false
-	f.locked = false
 	return f
 }
 
 // Check add a message and check if the block code should be runned testing if
 // has no failures or allow stack or unlocked.
 func (f *Faults) Check(message string, block BlockFunction) *Faults {
-	if !f.locked && f.IsEmpty() || f.allowStack {
-		f.lastMessage = message
+	if !f.locked {
 		if fail := block(); fail != nil {
-			f.failures[message] = fail
+			f.addFailWithMessage(fail, message).lock()
 		}
 	}
 
@@ -56,8 +85,7 @@ func (f *Faults) Check(message string, block BlockFunction) *Faults {
 
 // Add fail and message.
 func (f *Faults) Add(fail error, message string) *Faults {
-	f.failures[message] = fail
-	return f
+	return f.addFailWithMessage(fail, message)
 }
 
 // AddIf add fail and massage by condition.
@@ -93,7 +121,5 @@ func (f *Faults) IsNotEmpty() bool {
 
 // New creates a new faults handler.
 func New() (f *Faults) {
-	f = &Faults{}
-	f.Reset()
-	return f
+	return new(Faults).Reset()
 }
