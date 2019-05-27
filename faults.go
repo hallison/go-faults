@@ -5,18 +5,19 @@
 // Package faults provides a small errors handler.
 package faults
 
-import "fmt"
+import (
+	"fmt"
+)
 
-// Type function that runs a block code.
+// Type function that runs a block code and returns error.
 type BlockFunction func() error
 
 // Faults is a basic structure to handle errors.
 type Faults struct {
-	lastMessage string                   `json:"-"`
-	failures    map[string]error         `json:"errors"`
-	checklist   map[string]BlockFunction `json:"-"`
-	allowStack  bool                     `json:"-"`
-	locked      bool
+	lastMessage string           `json:"-"`
+	failures    map[string]error `json:"errors"`
+	allowStack  bool             `json:"-"`
+	locked      bool             `json:"-"`
 }
 
 // EnableStack if handle a stack of errors, this function enable this feature.
@@ -34,7 +35,7 @@ func (f *Faults) DisableStack() *Faults {
 // Reset set default values to faults handler.
 func (f *Faults) Reset() *Faults {
 	f.failures = make(map[string]error)
-	f.checklist = make(map[string]BlockFunction)
+	f.lastMessage = ""
 	f.allowStack = false
 	f.locked = false
 	return f
