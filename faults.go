@@ -88,20 +88,27 @@ func (f *Faults) Add(fail error, message string) *Faults {
 	return f.addFailWithMessage(fail, message)
 }
 
-// AddIf add fail and massage by condition.
-func (f *Faults) AddIf(condition bool, message string) *Faults {
-	if f.locked = condition; condition {
-		f.failures[message] = fmt.Errorf(message)
+// Condition add fail and massage by condition and lock all checks.
+func (f *Faults) Condition(condition bool, message string) *Faults {
+	if !f.locked && condition {
+		f.addFailWithMessage(fmt.Errorf(message), message).lock()
 	}
+
 	return f
+}
+
+// Condition add fail and massage by condition and lock all checks.
+func (f *Faults) Conditionf(condition bool, message string, values ...interface{}) *Faults {
+	return f.Condition(condition, fmt.Sprintf(message, values...))
+}
+
+func (f *Faults) AddIf(condition bool, message string) *Faults {
+	return f.Condition(condition, message)
 }
 
 // GetLast returns the last error.
 func (f *Faults) GetLast() error {
-	if f.lastMessage != "" {
-		return f.failures[f.lastMessage]
-	}
-	return nil
+	return f.failures[f.lastMessage]
 }
 
 // GetAll returns all failures.
