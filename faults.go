@@ -9,10 +9,10 @@ import (
 	"fmt"
 )
 
-// Type function that runs a block code and returns error.
+// BlockFunction ia a function that runs a block code and returns error.
 type BlockFunction func() error
 
-// Type function that runs a block code and returns boolean.
+// TestFunction ia a function that runs a block code and returns boolean.
 type TestFunction func(error) bool
 
 // Faults is a basic structure to handle errors.
@@ -100,13 +100,9 @@ func (f *Faults) Condition(condition bool, message string) *Faults {
 	return f
 }
 
-// Condition add fail and massage by condition and lock all checks.
+// Conditionf add fail and massage by condition and lock all checks.
 func (f *Faults) Conditionf(condition bool, message string, values ...interface{}) *Faults {
 	return f.Condition(condition, fmt.Sprintf(message, values...))
-}
-
-func (f *Faults) AddIf(condition bool, message string) *Faults {
-	return f.Condition(condition, message)
 }
 
 // GetLast returns the last error.
